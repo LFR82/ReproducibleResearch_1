@@ -112,9 +112,92 @@ Fill in missing values with mean for the corresponding 5-minute intervals
 ```r
 dat <- read.csv("activity.csv")
 dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+cleandat <- na.omit(dat)
+mv0 <- is.na(dat$steps)
+mn0 <- tapply(cleandat$steps, cleandat$interval, mean)
+dat$steps[mv0] <- mn0[as.character(cleandat$interval[mv0])] 
+```
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+```r
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
 newdat <- dat
 mv0 <- is.na(newdat$steps)
 cleandat <- na.omit(dat)
 mn0 <- tapply(cleandat$steps, cleandat$interval, mean)
 newdat$steps[mv0] <- mn0[as.character(newdat$interval[mv0])]
 ```
+
+Make a histogram of the total number of steps taken each day 
+
+```r
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+newdat <- dat
+mv0 <- is.na(newdat$steps)
+cleandat <- na.omit(dat)
+mn0 <- tapply(cleandat$steps, cleandat$interval, mean)
+newdat$steps[mv0] <- mn0[as.character(newdat$interval[mv0])]
+newdat$day <- (format(newdat$date, "%m%d"))
+daysteps <- aggregate(newdat$steps, list(newdat$day), FUN="sum")
+daysteps$Group.1 <- as.Date(daysteps$Group.1, "%m%d")
+daysteps$month <- format(daysteps$Group.1, "%m")
+library(ggplot2)
+g <- ggplot(daysteps, aes(Group.1, x))
+g + geom_bar(stat="identity", fill="steelblue") + labs(x="Day", y="Steps", title="Total number of steps taken each day")+facet_grid(.~month, scales="free")
+```
+
+![plot of chunk totalstepsday](figure/totalstepsday-1.png) 
+
+Calculate and report the mean and median total number of steps taken per day
+
+```r
+newdatmean <- mean(daysteps$x)
+newdatmean
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+newdatmedian <- median(daysteps$x)
+newdatmedian
+```
+
+```
+## [1] 10766.19
+```
+
+Do these values differ from the estimates from the first part of the assignment?
+
+```r
+meanbef <- mean(t0$x, na.rm=T)
+medianbef <- median(t0$x, na.rm=T)
+newdatmean - meanbef
+```
+
+```
+## [1] 0
+```
+
+```r
+newdatmedian - medianbef
+```
+
+```
+## [1] 1.188679
+```
+
+What is the impact of imputing missing data on the estimates of the total daily number of steps?
+The mean values of both datasets before and after imputting missing data remain the same while the median of the new dataset (with missing data input) is greater.
+
+
+
+
+
+
+
+
