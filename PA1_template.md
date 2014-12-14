@@ -35,3 +35,86 @@ g + geom_bar(stat="identity", fill="steelblue")+labs(title="Total number of step
 ```
 
 ![plot of chunk stepseachday](figure/stepseachday-1.png) 
+
+Calculate and report the mean and median total number of steps taken per day
+
+```r
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+t0 <- aggregate(dat$steps, list(dat$date), FUN = "sum")
+mean(t0$x, na.rm=T)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+median(t0$x, na.rm=T)
+```
+
+```
+## [1] 10765
+```
+
+What is the average daily activity pattern?
+===========================================
+
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```r
+library(ggplot2)
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+cleandat <- na.omit(dat)
+i0 <- aggregate(cleandat$steps, list(as.numeric(as.character(cleandat$interval))), FUN = "mean")
+g <- ggplot(i0, aes(Group.1, x))
+g + geom_line(color="blue") + labs(title="Average daily activity pattern", x="5-minute interval", y="Average steps")
+```
+
+![plot of chunk timeseriesplot](figure/timeseriesplot-1.png) 
+
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```r
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+cleandat <- na.omit(dat)
+i0 <- aggregate(cleandat$steps, list(as.numeric(as.character(cleandat$interval))), FUN = "mean")
+i0[which.max(i0$x),]
+```
+
+```
+##     Group.1        x
+## 104     835 206.1698
+```
+
+Imputing missing values
+=======================
+
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```r
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+sapply(dat, function(x) sum(length(which(is.na(dat)))))
+```
+
+```
+##    steps     date interval 
+##     2304     2304     2304
+```
+
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Fill in missing values with mean for the corresponding 5-minute intervals
+
+```r
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+newdat <- dat
+mv0 <- is.na(newdat$steps)
+cleandat <- na.omit(dat)
+mn0 <- tapply(cleandat$steps, cleandat$interval, mean)
+newdat$steps[mv0] <- mn0[as.character(newdat$interval[mv0])]
+```
