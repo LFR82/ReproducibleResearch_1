@@ -115,6 +115,43 @@ newdatmedian - medianbef
 What is the impact of imputing missing data on the estimates of the total daily number of steps?
 The mean values of both datasets before and after imputting missing data remain the same while the median of the new dataset (with missing data input) is greater.
 
+Are there differences in activity patterns between weekdays and weekends?
+=========================================================================
+Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+```{r, echo=TRUE}
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+newdat <- dat
+mv0 <- is.na(newdat$steps)
+cleandat <- na.omit(dat)
+mn0 <- tapply(cleandat$steps, cleandat$interval, mean)
+newdat$steps[mv0] <- mn0[as.character(newdat$interval[mv0])]
+newdat$week <- weekdays (newdat$date, abbreviate=FALSE)
+newdat$week <- as.factor(newdat$week)
+newdat$week <- ifelse(newdat$week %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
+head(newdat)
+```
+
+Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+```{r, echo=TRUE}
+dat <- read.csv("activity.csv")
+dat$date <- as.Date(dat$date, format = "%Y-%m-%d")
+newdat <- dat
+mv0 <- is.na(newdat$steps)
+cleandat <- na.omit(dat)
+mn0 <- tapply(cleandat$steps, cleandat$interval, mean)
+newdat$steps[mv0] <- mn0[as.character(newdat$interval[mv0])]
+newdat$week <- weekdays (newdat$date, abbreviate=FALSE)
+newdat$week <- as.factor(newdat$week)
+newdat$week <- ifelse(newdat$week %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
+weekend <- subset(newdat, week == "Weekend", c("steps", "date", "interval"))
+weekday <- subset(newdat, week == "Weekday", c("steps", "date", "interval"))
+mw0 <- aggregate (weekend$steps, list(as.numeric(as.character(weekend$interval))), FUN="mean")
+mw1 <- aggregate (weekday$steps, list(as.numeric(as.character(weekday$interval))), FUN="mean")
+par(mfrow=c(1,2))
+plot(mw0, type="l", xlab="5-minute interval", ylab="Average steps", main="weekend")
+plot(mw1, type="l", xlab="5-minute interval", ylab="Average steps", main="weekday")
+```
 
 
 
